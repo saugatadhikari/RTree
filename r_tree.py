@@ -1,4 +1,4 @@
-from rtree import rtree
+from rtree import index
 
 
 def read_doc_file(file_name: str) -> dict:
@@ -97,10 +97,12 @@ def pipeline(loc_file: str, doc_file: str, radius: int, output_file: str) -> Non
     obj_dict = read_doc_file(doc_file)
     loc_list = read_loc_file(loc_file)
 
+    r_tree = create_rtree(loc_list)
+
     num_vertices = len(loc_list)
     num_edges = 0
 
-    fp = open('output.txt', 'w')
+    fp = open(output_file, 'w')
 
     vertex_string = ""
     edge_string = ""
@@ -117,10 +119,10 @@ def pipeline(loc_file: str, doc_file: str, radius: int, output_file: str) -> Non
         for nearby_point in nearby_points:
             nearby_obj_id = nearby_point + 1
             if obj_id < nearby_obj_id:
-                edge_string += f"e {obj_id} {nearby_obj_id}\n"
+                edge_string += f"e {obj_id} {nearby_obj_id} 1\n"
                 num_edges += 1
 
-    fp.write(f"t {num_objects} {num_edges}\n")
+    fp.write(f"t {num_vertices} {num_edges}\n")
     fp.write(vertex_string)
     fp.write(edge_string)
     fp.close()
