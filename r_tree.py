@@ -90,6 +90,20 @@ def get_nearest(r_tree, point, count=1, return_objects=False):
         return list(r_tree.nearest((min_lat, min_lon, max_lat, max_lon ), count))
 
 
+def within_range(point1: tuple, point2: tuple, radius: float) -> bool:
+    """ Return whether or not the 2 points are within distance d (euclidean distance) """
+    x1, y1 = point1
+    x2, y2 = point2
+
+    delta_x = abs(x1 - x2)
+    delta_y = abs(y1 - y2)
+
+    if (delta_x*delta_x + delta_y*delta_y) <= (radius*radius):
+        return True
+
+    return False
+
+
 def pipeline(loc_file: str, doc_file: str, radius: int, output_file: str) -> None:
     """
         Read location file and doc file with objects and location(x, y) and converts to required graph format
@@ -112,6 +126,10 @@ def pipeline(loc_file: str, doc_file: str, radius: int, output_file: str) -> Non
         label_id = obj_dict[obj_id] # label id
         
         nearby_points = get_nearby(r_tree, query_point, radius, return_objects=False)
+
+        # filter nearby points based on circle range query(initially we have rectangle)
+        nearby_points = list(filter(lambda x: within_range(query_point, loc_list[x], radius), nearby_points))
+
         degree = len(nearby_points) - 1 # degree of vertex, minus 1 because it gives self loop as well
         
         vertex_string += f"v {obj_id} {label_id} {degree}\n"
